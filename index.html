@@ -7,7 +7,7 @@
     <style>
         body { 
             font-family: 'Cairo', sans-serif; 
-            background: transparent; 
+            background-color: #121212; /* Grey-Black like the nav bar */
             color: white; 
             margin: 0;
             padding: 0;
@@ -17,36 +17,34 @@
             flex-direction: column;
         }
 
-        /* Fixed Navigation Bar for Viewers */
         nav {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
+            background: #1a1a1a; /* Slightly lighter grey-black */
+            padding: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 2px solid #444;
-            flex-shrink: 0; /* Prevents nav from shrinking */
+            border-bottom: 2px solid #333;
+            flex-shrink: 0;
         }
 
         #viewer-box { 
             font-size: 36px; 
-            color: white; 
+            color: #ffffff; 
             font-weight: 800;
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        #count { color: #00d4ff; } /* Highlight the number */
+        #count { color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.5); }
 
-        /* Chat Container */
         #chat-box { 
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end; /* New messages at bottom */
+            justify-content: flex-end;
             padding: 20px;
-            gap: 12px;
+            gap: 15px;
             overflow: hidden;
         }
 
@@ -55,8 +53,6 @@
             line-height: 1.2;
             text-shadow: 2px 2px 4px rgba(0,0,0,1);
             animation: fadeIn 0.3s ease-out;
-            word-wrap: break-word;
-            /* Support both Arabic and English naturally */
             unicode-bidi: plaintext; 
             text-align: start;
         }
@@ -65,6 +61,12 @@
             color: #ff4500; 
             font-weight: 800;
             margin-right: 12px;
+        }
+
+        /* Styling for any images/emojis if YouTube sends them as HTML */
+        .message img {
+            height: 48px;
+            vertical-align: middle;
         }
 
         @keyframes fadeIn {
@@ -89,8 +91,17 @@
         const chatBox = document.getElementById('chat-box');
 
         socket.on('viewerCount', (count) => {
-            countEl.innerText = count.toLocaleString();
+            countEl.innerText = Number(count).toLocaleString();
         });
+
+        // Simple Emoji Converter for common YT shortcuts
+        function cleanText(text) {
+            return text
+                .replace(/:face-blue-smiling:/g, '😊')
+                .replace(/:heart:/g, '❤️')
+                .replace(/:fire:/g, '🔥')
+                .replace(/:thumbsup:/g, '👍');
+        }
 
         socket.on('newMessages', (messages) => {
             messages.forEach(msg => {
@@ -98,20 +109,19 @@
                 div.className = 'message';
                 
                 const author = msg.authorDetails?.displayName || "User";
-                const text = msg.snippet?.displayMessage || "";
+                let text = msg.snippet?.displayMessage || "";
+
+                // Clean the text of YT emoji codes
+                text = cleanText(text);
 
                 div.innerHTML = `<span class="author">${author}:</span><span>${text}</span>`;
-                
                 chatBox.appendChild(div);
             });
             
-            // Limit messages to fit the vertical space (approx 10-12 at this font size)
-            while (chatBox.children.length > 12) {
+            while (chatBox.children.length > 10) {
                 chatBox.removeChild(chatBox.firstChild);
             }
         });
-
-        socket.on('connect', () => console.log("System Ready"));
     </script>
 </body>
 </html>
