@@ -1,29 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-    <title>Live Stats</title>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        #viewer-box { font-size: 3em; color: #ff4500; margin: 20px; font-weight: bold; }
-        #chat-box { 
-            height: 400px; overflow-y: auto; border: 1px solid #444; 
-            padding: 15px; text-align: left; background: #222;
-            max-width: 600px; margin: 0 auto; border-radius: 8px;
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: transparent; 
+            color: white; 
+            margin: 0;
+            padding: 10px;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Chat stays at the bottom */
         }
-        .message { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
-        .author { color: #00d4ff; }
+
+        #viewer-box { 
+            font-size: 40px; 
+            color: #ff4500; 
+            font-weight: 800;
+            text-shadow: 3px 3px 5px rgba(0,0,0,1);
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+
+        #chat-box { 
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message { 
+            font-size: 48px; /* Your requested size */
+            line-height: 1.3;
+            text-shadow: 3px 3px 6px rgba(0,0,0,1);
+            animation: slideIn 0.3s ease-out forwards;
+            word-wrap: break-word;
+            padding: 5px 15px;
+        }
+
+        .author { 
+            color: #00d4ff; 
+            font-weight: 800;
+            margin-left: 10px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
-    <h1>Stream Dashboard</h1>
-    <div id="viewer-box">👀 <span id="count">0</span> Viewers</div>
+
+    <div id="viewer-box">👀 <span id="count">0</span></div>
     <div id="chat-box"></div>
 
     <script>
-        // Connecting without a URL automatically points to the hosting server
         const socket = io(); 
-        
         const countEl = document.getElementById('count');
         const chatBox = document.getElementById('chat-box');
 
@@ -35,15 +72,22 @@
             messages.forEach(msg => {
                 const div = document.createElement('div');
                 div.className = 'message';
-                const author = msg.authorDetails?.displayName || "Anonymous";
+                
+                const author = msg.authorDetails?.displayName || "مجهول";
                 const text = msg.snippet?.displayMessage || "";
-                div.innerHTML = `<strong class="author">${author}:</strong> ${text}`;
+
+                div.innerHTML = `<span class="author">${author}:</span><span>${text}</span>`;
+                
                 chatBox.appendChild(div);
             });
-            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // Limit messages so they don't go off the top of the vertical screen
+            while (chatBox.children.length > 8) {
+                chatBox.removeChild(chatBox.firstChild);
+            }
         });
 
-        socket.on('connect', () => console.log("Connected!"));
+        socket.on('connect', () => console.log("Connected to Stream"));
     </script>
 </body>
 </html>
