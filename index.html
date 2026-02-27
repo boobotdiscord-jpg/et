@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;900&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
         body { 
             font-family: 'Cairo', sans-serif; 
-            background-color: #121212; /* Grey-Black like the nav bar */
+            background-color: #121212; /* Grey-Black Theme */
             color: white; 
             margin: 0;
             padding: 0;
@@ -18,59 +18,49 @@
         }
 
         nav {
-            background: #1a1a1a; /* Slightly lighter grey-black */
-            padding: 20px;
+            background: #1a1a1a;
+            padding: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 2px solid #333;
+            border-bottom: 3px solid #333;
             flex-shrink: 0;
         }
 
         #viewer-box { 
-            font-size: 36px; 
-            color: #ffffff; 
-            font-weight: 800;
+            font-size: 42px; 
+            font-weight: 900;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
 
-        #count { color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.5); }
+        #count { color: #00d4ff; }
 
         #chat-box { 
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: flex-end; 
             padding: 20px;
             gap: 15px;
             overflow: hidden;
         }
 
         .message { 
-            font-size: 48px; 
+            font-size: 48px; /* Massive Arabic/English Text */
             line-height: 1.2;
-            text-shadow: 2px 2px 4px rgba(0,0,0,1);
-            animation: fadeIn 0.3s ease-out;
-            unicode-bidi: plaintext; 
+            text-shadow: 3px 3px 6px rgba(0,0,0,1);
+            animation: slideUp 0.3s ease-out;
+            unicode-bidi: plaintext; /* Auto-aligns Arabic & English */
             text-align: start;
+            word-wrap: break-word;
         }
 
-        .author { 
-            color: #ff4500; 
-            font-weight: 800;
-            margin-right: 12px;
-        }
+        .author { color: #ff4500; font-weight: 900; margin-right: 15px; }
 
-        /* Styling for any images/emojis if YouTube sends them as HTML */
-        .message img {
-            height: 48px;
-            vertical-align: middle;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
@@ -78,9 +68,7 @@
 <body>
 
     <nav>
-        <div id="viewer-box">
-            👤 <span id="count">0</span> WATCHING
-        </div>
+        <div id="viewer-box">👤 <span id="count">0</span> WATCHING</div>
     </nav>
 
     <div id="chat-box"></div>
@@ -94,31 +82,24 @@
             countEl.innerText = Number(count).toLocaleString();
         });
 
-        // Simple Emoji Converter for common YT shortcuts
-        function cleanText(text) {
-            return text
-                .replace(/:face-blue-smiling:/g, '😊')
-                .replace(/:heart:/g, '❤️')
-                .replace(/:fire:/g, '🔥')
-                .replace(/:thumbsup:/g, '👍');
-        }
-
         socket.on('newMessages', (messages) => {
             messages.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = 'message';
-                
                 const author = msg.authorDetails?.displayName || "User";
                 let text = msg.snippet?.displayMessage || "";
 
-                // Clean the text of YT emoji codes
-                text = cleanText(text);
+                // EXCLUDE YOUTUBE EMOJIS: Deletes anything like :fire: or :smile:
+                const textWithoutEmojis = text.replace(/:[^:\s]+:/g, '').trim();
 
-                div.innerHTML = `<span class="author">${author}:</span><span>${text}</span>`;
-                chatBox.appendChild(div);
+                // Only add to screen if there is text remaining
+                if (textWithoutEmojis.length > 0) {
+                    const div = document.createElement('div');
+                    div.className = 'message';
+                    div.innerHTML = `<span class="author">${author}:</span><span>${textWithoutEmojis}</span>`;
+                    chatBox.appendChild(div);
+                }
             });
             
-            while (chatBox.children.length > 10) {
+            while (chatBox.children.length > 12) {
                 chatBox.removeChild(chatBox.firstChild);
             }
         });
